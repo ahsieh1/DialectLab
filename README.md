@@ -1,1 +1,2 @@
 # DialectLab
+# Our application’s goal is to help connect people who have the same interest in a specific language and culture. By providing community spaces centered around mutual understanding and exchange, language learners will be able to engage in regular conversation and practice
