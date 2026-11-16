@@ -1,6 +1,8 @@
 
 import * as path from 'path'
 import { promises as fs } from 'fs'
+import { Kysely, PostgresDialect } from 'kysely'
+import { Migrator, FileMigrationProvider } from 'kysely/migration'
 import { Pool } from 'pg'
 import { Kysely, PostgresDialect } from 'kysely'
 import {
