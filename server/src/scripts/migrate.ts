@@ -1,52 +1,59 @@
+
 import * as path from 'path'
-import { Pool } from 'pg'
 import { promises as fs } from 'fs'
+import { Pool } from 'pg'
+import { Kysely, PostgresDialect } from 'kysely'
 import {
-  Kysely,
   Migrator,
-  PostgresDialect,
   FileMigrationProvider,
-} from 'kysely'
+} from 'kysely/migration'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
 
 async function migrateToLatest() {
-  const db = new Kysely<any>({
-    dialect: new PostgresDialect({
-      pool: new Pool({
-        connectionString: process.env.DATABASE_URL,
-      }),
-    }),
-  })
-
-  const migrator = new Migrator({
-    db,
-    provider: new FileMigrationProvider({
-      fs,
-      path,
-      // This tells Kysely to look for our migration files in the migrations folder
-      migrationFolder: path.join(__dirname, '../migrations'),
-    }),
-  })
-
-  const { error, results } = await migrator.migrateToLatest()
-
-  results?.forEach((it) => {
-    if (it.status === 'Success') {
-      console.log(`Migration "${it.migrationName}" was executed successfully`)
-    } else if (it.status === 'Error') {
-      console.error(`Failed to execute migration "${it.migrationName}"`)
-    }
-  })
-
-  if (error) {
-    console.error('Failed to migrate')
-    console.error(error)
-    process.exit(1)
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured')
   }
 
-  await db.destroy()
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  })
+
+  const db = new Kysely<any>({
+    dialect: new PostgresDialect({ pool }),
+  })
+
+  try {
+    const migrator = new Migrator({
+      db,
+      provider: new FileMigrationProvider({
+        fs,
+        path,
+        migrationFolder: path.join(__dirname, '../migrations'),
+      }),
+    })
+
+    const { error, results } = await migrator.migrateToLatest()
+
+    results?.forEach((result) => {
+      console.log(
+        `Migration "${result.migrationName}": ${result.status}`
+      )
+    })
+
+    if (error) {
+      throw error
+    }
+
+    console.log('Database migrations completed successfully.')
+  } finally {
+    await db.destroy()
+  }
 }
 
-migrateToLatest()
+migrateToLatest().catch((error) => {
+  console.error('Migration failed:')
+  console.error(error)
+  process.exitCode = 1
+})

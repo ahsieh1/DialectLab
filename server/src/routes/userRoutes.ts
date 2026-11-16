@@ -10,13 +10,20 @@ const authenticateToken = (req: any, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   
-  if (!token) return res.status(401).json({ error: 'Access denied' });
+  jwt.verify(
+  token,
+  process.env.JWT_SECRET || 'fallback_secret',
+  (
+    err: jwt.VerifyErrors | null,
+    user: string | jwt.JwtPayload | undefined
+  ) => {
+    if (err || !user || typeof user === 'string') {
+      return res.status(403).json({ error: 'Invalid token' })
+    }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret', (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
+    req.user = user
+    next()
+  })
 };
 
 // POST /api/users/signup
