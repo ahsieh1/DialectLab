@@ -1,4 +1,3 @@
-
 import { Kysely, sql } from 'kysely'
 
 interface MigrationDatabase {
@@ -10,6 +9,14 @@ interface MigrationDatabase {
 }
 
 export async function up(db: Kysely<MigrationDatabase>): Promise<void> {
+  const tables = await db.introspection.getTables()
+  const usersTable = tables.find((table) => table.name === 'users')
+  const hasUsername = usersTable?.columns.some((col) => col.name === 'username') ?? false
+
+  if (hasUsername) {
+    return
+  }
+
   await db.schema
     .alterTable('users')
     .addColumn('username', 'varchar(50)')

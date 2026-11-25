@@ -1,6 +1,12 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, Navigate, useNavigate } from 'react-router'
+import { signupUser } from '../api/authApi'
+import { useAuth } from '../hooks/useAuth'
 import './SignupPage.css'
+
+const USERNAME_PATTERN = /^[a-z0-9_.-]{3,30}$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MIN_PASSWORD_LENGTH = 6
 
 export function SignupPage() {
   const [username, setUsername] = useState('')
@@ -10,29 +16,55 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const { status, user, clearAuth } = useAuth()
+
+  if (status === 'authenticated' && user) {
+    return <Navigate to="/languages" replace />
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    const normalizedUsername = username.trim().toLowerCase()
+    const normalizedEmail = email.trim().toLowerCase()
+
+    if (!USERNAME_PATTERN.test(normalizedUsername)) {
+      setError(
+        'Username must be 3–30 characters using letters, numbers, underscores, dots, or hyphens'
+      )
+      return
+    }
+
+    if (!normalizedEmail || !EMAIL_PATTERN.test(normalizedEmail)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+      return
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
+
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/users/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+      await signupUser({
+        username: normalizedUsername,
+        email: normalizedEmail,
+        password,
       })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? 'Signup failed')
-        return
-      }
-      navigate('/login')
-    } catch {
-      setError('Unable to connect to server')
+      clearAuth()
+      navigate('/login', {
+        replace: true,
+        state: { message: 'Account created! Please sign in.' },
+      })
+    } catch (err) {
+      clearAuth()
+      setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
       setLoading(false)
     }
