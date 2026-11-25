@@ -1,18 +1,35 @@
-import express from "express";
-import userRoutes from "./routes/userRoutes";
+import express, { Express } from 'express'
+import cors from 'cors'
+import { Kysely } from 'kysely'
+import { Database, db } from './database'
+import { createUserRouter } from './routes/userRoutes'
 
-const app = express();
+/**
+ * Create the configured Express application instance.
+ */
+export function createApp(database: Kysely<Database> = db): Express {
+  const app = express()
 
-app.use(express.json());
+  app.use(cors())
+  app.use(express.json())
 
-// Mount the user API routes
-app.use("/api/users", userRoutes);
+  // Mount the user API routes
+  app.use('/api/users', createUserRouter(database))
 
-app.get("/api/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    application: "DialectLab",
-  });
-});
+  app.get('/api/health', (_req, res) => {
+    res.json({
+      status: 'ok',
+      application: 'DialectLab',
+    })
+  })
 
-export default app;
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok' })
+  })
+
+  return app
+}
+
+const app = createApp()
+
+export default app

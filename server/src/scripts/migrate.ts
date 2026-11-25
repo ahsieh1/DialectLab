@@ -1,16 +1,11 @@
-
 import * as path from 'path'
 import { promises as fs } from 'fs'
-import { Kysely, PostgresDialect } from 'kysely'
-import { Migrator, FileMigrationProvider } from 'kysely/migration'
 import { Pool } from 'pg'
 import { Kysely, PostgresDialect } from 'kysely'
-import {
-  Migrator,
-  FileMigrationProvider,
-} from 'kysely/migration'
+import { Migrator, FileMigrationProvider } from 'kysely/migration'
 import * as dotenv from 'dotenv'
 
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 dotenv.config()
 
 async function migrateToLatest() {
@@ -22,7 +17,7 @@ async function migrateToLatest() {
     connectionString: process.env.DATABASE_URL,
   })
 
-  const db = new Kysely<any>({
+  const db = new Kysely<unknown>({
     dialect: new PostgresDialect({ pool }),
   })
 

@@ -1,0 +1,10 @@
+.protected-route-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  background: var(--bg-warm);
+  color: var(--text);
+  font-family: var(--sans);
+  padding: 24px;
+}

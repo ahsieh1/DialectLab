@@ -40,5 +40,10 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }

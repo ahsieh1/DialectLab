@@ -3,35 +3,41 @@ import { Link } from 'react-router'
 import './LoginForm.css'
 
 export type Props = {
-  onSubmit: (username: string, password: string) => void
+  onSubmit: (identifier: string, password: string) => void
   loading?: boolean
   error?: string
+  notice?: string
 }
 
-export function LoginForm({ onSubmit, loading, error }: Props) {
-  const [username, setUsername] = useState('')
+export function LoginForm({ onSubmit, loading, error, notice }: Props) {
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    onSubmit(username, password)
+    onSubmit(identifier, password)
   }
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
+      {notice && !error && (
+        <p className="login-form-notice" role="status">
+          {notice}
+        </p>
+      )}
       {error && <p className="login-form-error" role="alert">{error}</p>}
 
       <label className="login-form-label" htmlFor="username">
-        Username
+        Username or Email
       </label>
       <input
         className="login-form-input"
         id="username"
         type="text"
-        placeholder="your_username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        placeholder="your_username or you@example.com"
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
         required
         autoComplete="username"
       />
